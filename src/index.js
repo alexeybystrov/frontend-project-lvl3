@@ -8,8 +8,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // import 'bootstrap/dist/css/bootstrap.css';
 import onChange from 'on-change';
 import * as yup from 'yup';
+import axios from 'axios';
 import view from './view';
-// import axios from 'axios';
 
 const schema = yup.string().url();
 
@@ -21,6 +21,7 @@ const schema = yup.string().url();
  */
 const state = {
   form: {
+    processState: 'filling',
     fields: {
       rssLink: '',
     },
@@ -29,6 +30,12 @@ const state = {
   },
   feeds: [],
   posts: [],
+};
+
+const getProxyUrl = (url) => {
+  const proxy = 'https://cors-anywhere.herokuapp.com';
+  const feed = new URL(url);
+  return `${proxy}/${feed.host}${feed.pathname}`;
 };
 
 const form = document.querySelector('.rss-form');
@@ -58,10 +65,18 @@ form.addEventListener('submit', (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
   watchedState.form.fields.rssLink = formData.get('url');
+
   try {
     schema.validateSync(state.form.fields.rssLink, { abortEarly: false });
     watchedState.form.valid = true;
     watchedState.form.validationErrors = [];
+    axios.get(getProxyUrl(state.form.fields.rssLink))
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   } catch (err) {
     watchedState.form.valid = false;
     const errors = err.inner.map(({ path, message }) => ({ [path]: message }));
