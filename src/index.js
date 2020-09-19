@@ -33,14 +33,6 @@ const state = {
   posts: [],
 };
 
-const getProxyUrl = (url) => {
-  const proxy = 'https://cors-anywhere.herokuapp.com';
-  const feed = new URL(url);
-  return `${proxy}/${feed.host}${feed.pathname}`;
-};
-
-const form = document.querySelector('.rss-form');
-
 /* const watchedState = onChange(state, (path, value) => {
   switch (path) {
     case 'form.processState':
@@ -58,9 +50,17 @@ const form = document.querySelector('.rss-form');
 });
  */
 
+const form = document.querySelector('.rss-form');
+
 const watchedState = onChange(state, (/* path, currentValue, previousValue */) => {
   view(state);
 });
+
+const getProxyUrl = (url) => {
+  const proxy = 'https://cors-anywhere.herokuapp.com';
+  const feed = new URL(url);
+  return `${proxy}/${feed.host}${feed.pathname}`;
+};
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
@@ -71,6 +71,7 @@ form.addEventListener('submit', (e) => {
     schema.validateSync(state.form.fields.rssLink, { abortEarly: false });
     watchedState.form.valid = true;
     watchedState.form.validationErrors = [];
+
     axios.get(getProxyUrl(state.form.fields.rssLink))
       .then((response) => {
         console.log(getFeedData(response.data));
