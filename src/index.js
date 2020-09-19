@@ -10,6 +10,7 @@ import onChange from 'on-change';
 import * as yup from 'yup';
 import axios from 'axios';
 import view from './view';
+import getFeedData from './parser';
 
 const schema = yup.string().url();
 
@@ -72,7 +73,7 @@ form.addEventListener('submit', (e) => {
     watchedState.form.validationErrors = [];
     axios.get(getProxyUrl(state.form.fields.rssLink))
       .then((response) => {
-        console.log(response.data);
+        console.log(getFeedData(response.data));
       })
       .catch((err) => {
         console.log(err);
