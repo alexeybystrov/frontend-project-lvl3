@@ -1,4 +1,4 @@
-// import _ from 'lodash';
+import _ from 'lodash';
 // import 'bootstrap';
 // import 'bootstrap/js/dist/util';
 // import 'bootstrap/js/dist/alert';
@@ -11,8 +11,6 @@ import * as yup from 'yup';
 import axios from 'axios';
 import view from './view';
 import getFeedData from './parser';
-
-const schema = yup.string().url();
 
 /* const errorMessages = {
   network: {
@@ -52,8 +50,8 @@ const state = {
 
 const form = document.querySelector('.rss-form');
 
-const watchedState = onChange(state, (/* path, currentValue, previousValue */) => {
-  view(state);
+const watchedState = onChange(state, (path, value) => {
+  view(watchedState, path, value);
 });
 
 const getProxyUrl = (url) => {
@@ -62,26 +60,52 @@ const getProxyUrl = (url) => {
   return `${proxy}/${feed.host}${feed.pathname}`;
 };
 
+const addFeed = (targetState, feedData) => {
+  const feedId = _.uniqueId();
+  const { feedTitle, feedDescription, posts } = feedData;
+  const url = targetState.form.fields.rssLink;
+
+  const newFeed = {
+    feedTitle, feedDescription, feedId, url,
+  };
+  targetState.feeds.unshift(newFeed);
+  const newPosts = posts.map((post) => ({ ...post, feedId }));
+  targetState.posts.unshift(newPosts);
+};
+
+const validate = (targetState) => {
+  const schema = yup.string().url();
+  const validationErrors = [];
+  try {
+    schema.validateSync(targetState.form.fields.rssLink);
+  } catch (err) {
+    validationErrors.push(err.errors);
+  }
+  if (targetState.feeds.find((feed) => (feed.url === targetState.form.fields.rssLink))) {
+    validationErrors.push('feed already exist');
+  }
+  return validationErrors;
+};
+
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
   watchedState.form.fields.rssLink = formData.get('url');
+  const errors = validate(state);
+  watchedState.form.validationErrors = errors;
 
-  try {
-    schema.validateSync(state.form.fields.rssLink, { abortEarly: false });
+  if (errors.length === 0) {
     watchedState.form.valid = true;
-    watchedState.form.validationErrors = [];
-
     axios.get(getProxyUrl(state.form.fields.rssLink))
       .then((response) => {
-        console.log(getFeedData(response.data));
+        addFeed(watchedState, getFeedData(response.data));
+        console.log(state);
       })
       .catch((err) => {
         console.log(err);
       });
-  } catch (err) {
+  } else {
     watchedState.form.valid = false;
-    const errors = err.inner.map(({ path, message }) => ({ [path]: message }));
-    watchedState.form.validationErrors = errors;
+    console.log(state);
   }
 });
