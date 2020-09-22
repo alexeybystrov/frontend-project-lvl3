@@ -1,10 +1,25 @@
 // import _ from 'lodash';
+import i18next from 'i18next';
 
 export default (state, path, value) => {
   // console.log(state.form);
   // console.log(path);
   // console.log(state[`${path}`]);
   // console.log(value);
+
+  i18next.init({
+    lng: 'en',
+    debug: true,
+    resources: {
+      en: {
+        translation: {
+          errors: {
+            feedAlreadyExist: 'feed already exist',
+          },
+        },
+      },
+    },
+  });
 
   const renderValidation = (valid) => {
     const input = document.querySelector('input');
@@ -20,7 +35,7 @@ export default (state, path, value) => {
 
     if (errors.length !== 0) {
       target.classList.add('text-danger');
-      target.textContent = errors.join(' ');
+      target.textContent = errors.map((error) => i18next.t(`errors.${error}`)).join(' ');
     }
   };
 

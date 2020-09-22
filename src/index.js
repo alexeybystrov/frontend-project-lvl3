@@ -82,7 +82,7 @@ const validate = (targetState) => {
     validationErrors.push(err.errors);
   }
   if (targetState.feeds.find((feed) => (feed.url === targetState.form.fields.rssLink))) {
-    validationErrors.push('feed already exist');
+    validationErrors.push('feedAlreadyExist');
   }
   return validationErrors;
 };
