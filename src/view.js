@@ -15,6 +15,7 @@ export default (state, path, value) => {
         translation: {
           errors: {
             feedAlreadyExist: 'feed already exist',
+            notValidUrl: 'must be a valid URL',
           },
         },
       },

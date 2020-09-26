@@ -76,10 +76,15 @@ const addFeed = (targetState, feedData) => {
 const validate = (targetState) => {
   const schema = yup.string().url();
   const validationErrors = [];
-  try {
+
+  /*   try {
     schema.validateSync(targetState.form.fields.rssLink);
   } catch (err) {
     validationErrors.push(err.errors);
+  }
+ */
+  if (!schema.isValidSync(targetState.form.fields.rssLink)) {
+    validationErrors.push('notValidUrl');
   }
   if (targetState.feeds.find((feed) => (feed.url === targetState.form.fields.rssLink))) {
     validationErrors.push('feedAlreadyExist');
