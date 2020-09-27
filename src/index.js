@@ -20,7 +20,7 @@ import getFeedData from './parser';
  */
 const state = {
   form: {
-    processState: 'filling',
+    // processState: 'filling',
     fields: {
       rssLink: '',
     },
@@ -29,29 +29,13 @@ const state = {
   },
   feeds: [],
   posts: [],
+  feedUpdateDate: Date.now(),
 };
-
-/* const watchedState = onChange(state, (path, value) => {
-  switch (path) {
-    case 'form.processState':
-      processStateHandler(value);
-      break;
-    case 'form.valid':
-      submitButton.disabled = !value;
-      break;
-    case 'form.errors':
-      viewErrors(fieldElements, value);
-      break;
-    default:
-      break;
-  }
-});
- */
 
 const form = document.querySelector('.rss-form');
 
 const watchedState = onChange(state, (path, value) => {
-  view(watchedState, path, value);
+  view(path, value);
 });
 
 const getProxyUrl = (url) => {
@@ -62,11 +46,13 @@ const getProxyUrl = (url) => {
 
 const addFeed = (targetState, feedData) => {
   const feedId = _.uniqueId();
-  const { feedTitle, feedDescription, posts } = feedData;
+  const {
+    feedTitle, feedDescription, feedUpdateDate, posts,
+  } = feedData;
   const url = targetState.form.fields.rssLink;
 
   const newFeed = {
-    feedTitle, feedDescription, feedId, url,
+    feedTitle, feedDescription, feedUpdateDate, feedId, url,
   };
   targetState.feeds.unshift(newFeed);
   const newPosts = posts.map((post) => ({ ...post, feedId }));
@@ -77,12 +63,6 @@ const validate = (targetState) => {
   const schema = yup.string().url();
   const validationErrors = [];
 
-  /*   try {
-    schema.validateSync(targetState.form.fields.rssLink);
-  } catch (err) {
-    validationErrors.push(err.errors);
-  }
- */
   if (!schema.isValidSync(targetState.form.fields.rssLink)) {
     validationErrors.push('notValidUrl');
   }
@@ -90,6 +70,28 @@ const validate = (targetState) => {
     validationErrors.push('feedAlreadyExist');
   }
   return validationErrors;
+};
+
+const getNewPosts = (targetState, feedData, id) => {
+  const newPosts = feedData.posts
+    .filter((post) => Date.parse(post.postDate) > targetState.feedUpdateDate)
+    .map((post) => ({ ...post, feedId: id }));
+  return newPosts;
+};
+
+const updateFeeds = (targetState) => {
+  targetState.feeds.forEach((feed) => {
+    axios.get(getProxyUrl(feed.url))
+      .then((response) => {
+        const newFeedData = getFeedData(response.data);
+        const newPosts = getNewPosts(state, newFeedData, feed.feedId);
+        if (newPosts.length > 0) {
+          targetState.posts.unshift(newPosts);
+          watchedState.feedUpdateDate = Date.now();
+        }
+      });
+  });
+  setTimeout(() => updateFeeds(targetState), 5000);
 };
 
 form.addEventListener('submit', (e) => {
@@ -104,13 +106,12 @@ form.addEventListener('submit', (e) => {
     axios.get(getProxyUrl(state.form.fields.rssLink))
       .then((response) => {
         addFeed(watchedState, getFeedData(response.data));
-        console.log(state);
+        updateFeeds(watchedState);
       })
       .catch((err) => {
         console.log(err);
       });
   } else {
     watchedState.form.valid = false;
-    console.log(state);
   }
 });

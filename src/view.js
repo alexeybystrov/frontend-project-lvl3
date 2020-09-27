@@ -1,12 +1,7 @@
 // import _ from 'lodash';
 import i18next from 'i18next';
 
-export default (state, path, value) => {
-  // console.log(state.form);
-  // console.log(path);
-  // console.log(state[`${path}`]);
-  // console.log(value);
-
+export default (path, value) => {
   i18next.init({
     lng: 'en',
     debug: true,
@@ -41,21 +36,6 @@ export default (state, path, value) => {
   };
 
   const renderFeeds = (feed) => {
-  /*  feedsContainer.innerHTML = '';
-      targetState.feeds.forEach(({ feedTitle, feedDescription, feedId }) => {
-        const div = document.createElement('div');
-        div.setAttribute('data-feed-id', feedId);
-        const h3 = document.createElement('h3');
-        h3.classList.add('mb-1');
-        h3.textContent = feedTitle;
-        const p = document.createElement('p');
-        p.classList.add('mb-1');
-        p.textContent = feedDescription;
-
-        div.append(h3, p);
-        feedsContainer.append(div);
-      });
- */
     const [{ feedTitle, feedDescription, feedId }] = feed;
     const div = document.createElement('div');
     div.setAttribute('data-feed-id', feedId);
@@ -73,17 +53,20 @@ export default (state, path, value) => {
     form.reset();
   };
 
-  const renderPosts = (posts) => {
-    posts[0].forEach(({ postTitle, postLink, feedId }) => {
-      const div = document.createElement('div');
-      const a = document.createElement('a');
-      a.setAttribute('href', postLink);
-      a.textContent = postTitle;
-      div.append(a);
+  const renderPosts = ([posts]) => {
+    posts
+      .reverse()
+      .forEach(({ postTitle, postLink, feedId }) => {
+        const div = document.createElement('div');
+        const a = document.createElement('a');
+        a.setAttribute('href', postLink);
+        a.textContent = postTitle;
+        div.append(a);
 
-      const targetFeed = document.querySelector(`[data-feed-id="${feedId}"]`);
-      targetFeed.append(div);
-    });
+        const targetFeed = document.querySelector(`[data-feed-id="${feedId}"]`);
+        const targetP = targetFeed.querySelector('p');
+        targetP.after(div);
+      });
   };
 
   switch (path) {
@@ -101,7 +84,9 @@ export default (state, path, value) => {
       break;
     case 'form.fields.rssLink':
       break;
+    case 'feedUpdateDate':
+      break;
     default:
-      throw new Error('Unknown statement!');
+      throw new Error(`Unknown statement ${path}`);
   }
 };

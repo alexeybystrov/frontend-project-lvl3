@@ -9,7 +9,8 @@ export default (data) => {
   const posts = Array.from(channel.querySelectorAll('item')).map((post) => {
     const postTitle = post.querySelector('title').textContent;
     const postLink = post.querySelector('link').textContent;
-    return { postTitle, postLink };
+    const postDate = post.querySelector('pubDate').textContent;
+    return { postTitle, postLink, postDate };
   });
 
   return { feedTitle, feedDescription, posts };
