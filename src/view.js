@@ -10,7 +10,12 @@ export default (path, value) => {
         translation: {
           errors: {
             feedAlreadyExist: 'feed already exist',
-            notValidUrl: 'must be a valid URL',
+            notValidUrl: 'this must be a valid URL',
+            404: 'RSS not found',
+          },
+          alerts: {
+            addingRss: 'adding RSS...',
+            rssHasBeenLoaded: 'RSS has been loaded',
           },
         },
       },
@@ -26,12 +31,34 @@ export default (path, value) => {
 
   const renderErrors = (errors) => {
     const target = document.querySelector('.feedback');
-    target.classList.remove('text-danger');
+    target.classList.remove('text', 'text-danger', 'text-success');
     target.textContent = '';
+
+    const button = document.querySelector('button');
+    button.classList.remove('disabled');
 
     if (errors.length !== 0) {
       target.classList.add('text-danger');
       target.textContent = errors.map((error) => i18next.t(`errors.${error}`)).join(' ');
+    }
+  };
+
+  const renderAlert = (alert) => {
+    const target = document.querySelector('.feedback');
+    target.classList.remove('text', 'text-danger', 'text-success');
+    target.textContent = '';
+
+    const button = document.querySelector('button');
+
+    if (alert === 'addingRss') {
+      button.classList.add('disabled');
+      target.classList.add('text');
+      target.textContent = i18next.t(`alerts.${alert}`);
+    }
+    if (alert === 'rssHasBeenLoaded') {
+      button.classList.remove('disabled');
+      target.classList.add('text-success');
+      target.textContent = i18next.t(`alerts.${alert}`);
     }
   };
 
@@ -76,11 +103,17 @@ export default (path, value) => {
     case 'form.validationErrors':
       renderErrors(value);
       break;
+    case 'networkErrors':
+      renderErrors(value);
+      break;
     case 'feeds':
       renderFeeds(value);
       break;
     case 'posts':
       renderPosts(value);
+      break;
+    case 'form.state':
+      renderAlert(value);
       break;
     case 'form.fields.rssLink':
       break;

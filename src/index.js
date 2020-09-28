@@ -1,11 +1,5 @@
 import _ from 'lodash';
-// import 'bootstrap';
-// import 'bootstrap/js/dist/util';
-// import 'bootstrap/js/dist/alert';
 import 'bootstrap/dist/css/bootstrap.min.css';
-// import 'bootstrap/dist/css/bootstrap-reboot.min.css';
-// import 'bootstrap/dist/css/bootstrap-grid.min.css';
-// import 'bootstrap/dist/css/bootstrap.css';
 import onChange from 'on-change';
 import * as yup from 'yup';
 import axios from 'axios';
@@ -20,7 +14,7 @@ import getFeedData from './parser';
  */
 const state = {
   form: {
-    // processState: 'filling',
+    state: 'filling',
     fields: {
       rssLink: '',
     },
@@ -30,6 +24,7 @@ const state = {
   feeds: [],
   posts: [],
   feedUpdateDate: Date.now(),
+  networkErrors: [],
 };
 
 const form = document.querySelector('.rss-form');
@@ -98,18 +93,22 @@ form.addEventListener('submit', (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
   watchedState.form.fields.rssLink = formData.get('url');
+  watchedState.networkErrors = [];
+  watchedState.form.state = 'filling';
   const errors = validate(state);
   watchedState.form.validationErrors = errors;
 
   if (errors.length === 0) {
     watchedState.form.valid = true;
+    watchedState.form.state = 'addingRss';
     axios.get(getProxyUrl(state.form.fields.rssLink))
       .then((response) => {
+        watchedState.form.state = 'rssHasBeenLoaded';
         addFeed(watchedState, getFeedData(response.data));
         updateFeeds(watchedState);
       })
       .catch((err) => {
-        console.log(err);
+        watchedState.networkErrors.push(err.response.status);
       });
   } else {
     watchedState.form.valid = false;
