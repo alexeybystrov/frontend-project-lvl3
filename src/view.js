@@ -2,26 +2,6 @@
 import i18next from 'i18next';
 
 export default (path, value) => {
-  i18next.init({
-    lng: 'en',
-    debug: true,
-    resources: {
-      en: {
-        translation: {
-          errors: {
-            feedAlreadyExist: 'feed already exist',
-            notValidUrl: 'this must be a valid URL',
-            404: 'RSS not found',
-          },
-          alerts: {
-            addingRss: 'adding RSS...',
-            rssHasBeenLoaded: 'RSS has been loaded',
-          },
-        },
-      },
-    },
-  });
-
   const renderValidation = (valid) => {
     const input = document.querySelector('input');
     if (!valid) {
