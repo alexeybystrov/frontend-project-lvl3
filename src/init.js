@@ -7,13 +7,6 @@ import i18next from 'i18next';
 import view from './view';
 import getFeedData from './parser';
 
-/* const errorMessages = {
-  network: {
-    error: 'Network Problems. Try again.',
-  },
-};
- */
-
 const getProxyUrl = (url) => {
   const proxy = 'https://cors-anywhere.herokuapp.com';
   const feed = new URL(url);
@@ -36,15 +29,16 @@ const addFeed = (targetState, feedData) => {
 };
 
 const validate = (targetState) => {
-  const schema = yup.string().url();
+  const addedUrls = targetState.feeds.map(({ url }) => url);
+  const schema = yup.string().url().notOneOf(addedUrls);
   const validationErrors = [];
 
-  if (!schema.isValidSync(targetState.form.fields.rssLink)) {
-    validationErrors.push('notValidUrl');
+  try {
+    schema.validateSync(targetState.form.fields.rssLink);
+  } catch (err) {
+    validationErrors.push(err.type);
   }
-  if (targetState.feeds.find((feed) => (feed.url === targetState.form.fields.rssLink))) {
-    validationErrors.push('feedAlreadyExist');
-  }
+
   return validationErrors;
 };
 
@@ -52,10 +46,13 @@ const getNewPosts = (targetState, feedData, id) => {
   const newPosts = feedData.posts
     .filter((post) => Date.parse(post.postDate) > targetState.feedUpdateDate)
     .map((post) => ({ ...post, feedId: id }));
+  // console.log(newPosts);
+  // console.log(targetState.posts);
   return newPosts;
 };
 
 const updateFeeds = (targetState) => {
+  // console.log(targetState.feedUpdateDate);
   targetState.feeds.forEach((feed) => {
     axios.get(getProxyUrl(feed.url))
       .then((response) => {
@@ -66,9 +63,13 @@ const updateFeeds = (targetState) => {
           const state = targetState; // fix linter no-param-reassign
           state.feedUpdateDate = Date.now();
         }
+        setTimeout(() => updateFeeds(targetState), 5000);
+      })
+      .catch((err) => {
+        targetState.networkErrors.push(err.response.status);
+        setTimeout(() => updateFeeds(targetState), 5000);
       });
   });
-  setTimeout(() => updateFeeds(targetState), 5000);
 };
 
 export default () => {
@@ -79,13 +80,13 @@ export default () => {
       en: {
         translation: {
           errors: {
-            feedAlreadyExist: 'feed already exist',
-            notValidUrl: 'this must be a valid URL',
+            notOneOf: 'feed already exist',
+            url: 'this must be a valid URL',
             404: 'RSS not found',
           },
           alerts: {
-            addingRss: 'adding RSS...',
-            rssHasBeenLoaded: 'RSS has been loaded',
+            adding: 'adding RSS...',
+            loaded: 'RSS has been loaded',
           },
         },
       },
@@ -124,10 +125,10 @@ export default () => {
 
     if (errors.length === 0) {
       watchedState.form.valid = true;
-      watchedState.form.state = 'addingRss';
+      watchedState.form.state = 'adding';
       axios.get(getProxyUrl(state.form.fields.rssLink))
         .then((response) => {
-          watchedState.form.state = 'rssHasBeenLoaded';
+          watchedState.form.state = 'loaded';
           addFeed(watchedState, getFeedData(response.data));
           updateFeeds(watchedState);
         })

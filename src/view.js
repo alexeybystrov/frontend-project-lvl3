@@ -1,4 +1,3 @@
-// import _ from 'lodash';
 import i18next from 'i18next';
 
 export default (path, value) => {
@@ -6,7 +5,9 @@ export default (path, value) => {
     const input = document.querySelector('input');
     if (!valid) {
       input.classList.add('is-invalid');
-    } else input.classList.remove('is-invalid');
+    } else {
+      input.classList.remove('is-invalid');
+    }
   };
 
   const renderErrors = (errors) => {
@@ -30,12 +31,12 @@ export default (path, value) => {
 
     const button = document.querySelector('button');
 
-    if (alert === 'addingRss') {
+    if (alert === 'adding') {
       button.classList.add('disabled');
       target.classList.add('text');
       target.textContent = i18next.t(`alerts.${alert}`);
     }
-    if (alert === 'rssHasBeenLoaded') {
+    if (alert === 'loaded') {
       button.classList.remove('disabled');
       target.classList.add('text-success');
       target.textContent = i18next.t(`alerts.${alert}`);
