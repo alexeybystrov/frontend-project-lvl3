@@ -43,8 +43,8 @@ export default (path, value) => {
     }
   };
 
-  const renderFeeds = (feed) => {
-    const [{ feedTitle, feedDescription, feedId }] = feed;
+  const renderFeed = ([feed]) => {
+    const { feedTitle, feedDescription, feedId } = feed;
     const div = document.createElement('div');
     div.setAttribute('data-feed-id', feedId);
     const h3 = document.createElement('h3');
@@ -88,7 +88,7 @@ export default (path, value) => {
       renderErrors(value);
       break;
     case 'feeds':
-      renderFeeds(value);
+      renderFeed(value);
       break;
     case 'posts':
       renderPosts(value);
