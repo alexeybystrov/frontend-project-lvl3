@@ -28,13 +28,12 @@ const addFeed = (targetState, feedData) => {
   targetState.posts.unshift(newPosts);
 };
 
-const validate = (targetState) => {
-  const addedUrls = targetState.feeds.map(({ url }) => url);
-  const schema = yup.string().url().notOneOf(addedUrls);
+const validate = (urls, rssLink) => {
+  const schema = yup.string().url().notOneOf(urls);
   const validationErrors = [];
 
   try {
-    schema.validateSync(targetState.form.fields.rssLink);
+    schema.validateSync(rssLink);
   } catch (err) {
     validationErrors.push(err.type);
   }
@@ -120,7 +119,9 @@ export default () => {
     watchedState.form.fields.rssLink = formData.get('url');
     watchedState.networkErrors = [];
     watchedState.form.state = 'filling';
-    const errors = validate(state);
+
+    const addedUrls = watchedState.feeds.map(({ url }) => url);
+    const errors = validate(addedUrls, watchedState.form.fields.rssLink);
     watchedState.form.validationErrors = errors;
 
     if (errors.length === 0) {
