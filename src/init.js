@@ -45,13 +45,10 @@ const getNewPosts = (targetState, feedData, id) => {
   const newPosts = feedData.posts
     .filter((post) => Date.parse(post.postDate) > targetState.feedUpdateDate)
     .map((post) => ({ ...post, feedId: id }));
-  // console.log(newPosts);
-  // console.log(targetState.posts);
   return newPosts;
 };
 
 const updateFeeds = (targetState) => {
-  // console.log(targetState.feedUpdateDate);
   targetState.feeds.forEach((feed) => {
     axios.get(getProxyUrl(feed.url))
       .then((response) => {
